@@ -16,9 +16,12 @@ urllib.request.urlretrieve(url, "imagenet_classes.txt")
 with open("imagenet_classes.txt", "r") as f:
     imagenet_classes = [line.strip() for line in f]
 
+# Configurar dispositivo
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Cargar modelos preentrenados
-resnet = models.resnet50(pretrained=True)
-alexnet = models.alexnet(pretrained=True)
+resnet = models.resnet50(weights=models.ResNet50_Weights.DEFAULT).to(device)
+alexnet = models.alexnet(weights=models.AlexNet_Weights.DEFAULT).to(device)
 
 # Poner modelos en modo evaluación
 resnet.eval()
@@ -41,29 +44,29 @@ def predict():
         return jsonify({'error': 'No file uploaded'}), 400
     
     file = request.files['file']
-    image = Image.open(file.stream)
-    image = transform(image).unsqueeze(0)
+    
+    try:
+        image = Image.open(file.stream).convert("RGB")  # Asegurar que la imagen esté en formato RGB
+        image = transform(image).unsqueeze(0).to(device)
 
-    with torch.no_grad():
-        resnet_output = resnet(image)
-        alexnet_output = alexnet(image)
+        with torch.no_grad():
+            resnet_output = resnet(image)
+            alexnet_output = alexnet(image)
 
-    resnet_pred_idx = torch.argmax(resnet_output, 1).item()
-    alexnet_pred_idx = torch.argmax(alexnet_output, 1).item()
+        resnet_pred_idx = torch.argmax(resnet_output, 1).item()
+        alexnet_pred_idx = torch.argmax(alexnet_output, 1).item()
 
-    return jsonify({
-        'ResNet Prediction': imagenet_classes[resnet_pred_idx],
-        'AlexNet Prediction': imagenet_classes[alexnet_pred_idx],
-        'Model Performance': {
-            "ResNet-50": {"Top-1 Accuracy": "76.2%", "Top-5 Accuracy": "92.9%"},
-            "AlexNet": {"Top-1 Accuracy": "56.5%", "Top-5 Accuracy": "79.1%"}
-        }
-    })
+        return jsonify({
+            'ResNet Prediction': imagenet_classes[resnet_pred_idx],
+            'AlexNet Prediction': imagenet_classes[alexnet_pred_idx],
+            'Model Performance': {
+                "ResNet-50": {"Top-1 Accuracy": "76.2%", "Top-5 Accuracy": "92.9%"},
+                "AlexNet": {"Top-1 Accuracy": "56.5%", "Top-5 Accuracy": "79.1%"}
+            }
+        })
 
-# Reemplaza la sección final de tu archivo app.py con esto:
+    except Exception as e:
+        return jsonify({'error': f'Invalid image file: {str(e)}'}), 400
+
 if __name__ == '__main__':
-    # Para desarrollo local
     app.run(host='0.0.0.0', port=5000, debug=True)
-else:
-    # Para producción
-    app.config['DEBUG'] = False

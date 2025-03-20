@@ -1,140 +1,139 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clasificador de Imágenes con PyTorch</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clasificador de Imágenes con PyTorch</title>
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Clasificador de Imágenes con PyTorch</h1>
-            <p>Esta aplicación utiliza modelos preentrenados (ResNet-50 y AlexNet) para clasificar imágenes</p>
-        </header>
+  <div class="container">
+    <header>
+      <h1>Clasificador de Imágenes con PyTorch</h1>
+      <p>Esta aplicación utiliza modelos preentrenados (ResNet-50 y AlexNet) para clasificar imágenes</p>
+    </header>
 
-        <main>
-            <section class="upload-section">
-                <h2>Sube una imagen para clasificar</h2>
-                <form id="upload-form" enctype="multipart/form-data">
-                    <div class="file-input-container">
-                        <input type="file" id="image-upload" name="file" accept="image/*">
-                        <label for="image-upload" class="custom-file-upload">
-                            <span id="file-chosen">Seleccionar imagen</span>
-                        </label>
-                    </div>
-                    <div class="preview-container">
-                        <img id="image-preview" src="#" alt="Vista previa de la imagen" style="display:none;">
-                    </div>
-                    <button type="submit" id="submit-btn">Clasificar Imagen</button>
-                </form>
-            </section>
+    <main>
+      <section class="upload-section">
+        <h2>Sube una imagen para clasificar</h2>
+        <form id="upload-form" enctype="multipart/form-data">
+          <div class="file-input-container">
+            <input type="file" id="image-upload" name="file" accept="image/*">
+            <label for="image-upload" class="custom-file-upload">
+              <span id="file-chosen">Seleccionar imagen</span>
+            </label>
+          </div>
+          <div class="preview-container">
+            <img id="image-preview" src="#" alt="Vista previa de la imagen" style="display:none;">
+          </div>
+          <button type="submit" id="submit-btn">Clasificar Imagen</button>
+        </form>
+      </section>
 
-            <section class="results-section" style="display:none;">
-                <h2>Resultados de la Clasificación</h2>
-                <div class="results-container">
-                    <div class="result-card">
-                        <h3>ResNet-50</h3>
-                        <p id="resnet-prediction"></p>
-                        <div class="model-info">
-                            <p>Top-1 Accuracy: <span id="resnet-top1"></span></p>
-                            <p>Top-5 Accuracy: <span id="resnet-top5"></span></p>
-                        </div>
-                    </div>
-                    <div class="result-card">
-                        <h3>AlexNet</h3>
-                        <p id="alexnet-prediction"></p>
-                        <div class="model-info">
-                            <p>Top-1 Accuracy: <span id="alexnet-top1"></span></p>
-                            <p>Top-5 Accuracy: <span id="alexnet-top5"></span></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <div class="loading" style="display:none;">
-                <div class="spinner"></div>
-                <p>Procesando imagen...</p>
+      <section class="results-section" style="display:none;">
+        <h2>Resultados de la Clasificación</h2>
+        <div class="results-container">
+          <div class="result-card">
+            <h3>ResNet-50</h3>
+            <p id="resnet-prediction"></p>
+            <div class="model-info">
+              <p>Top-1 Accuracy: <span id="resnet-top1"></span></p>
+              <p>Top-5 Accuracy: <span id="resnet-top5"></span></p>
             </div>
-        </main>
+          </div>
+          <div class="result-card">
+            <h3>AlexNet</h3>
+            <p id="alexnet-prediction"></p>
+            <div class="model-info">
+              <p>Top-1 Accuracy: <span id="alexnet-top1"></span></p>
+              <p>Top-5 Accuracy: <span id="alexnet-top5"></span></p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <footer>
-            <p>Clasificador de imágenes usando PyTorch y Flask</p>
-        </footer>
-    </div>
+      <div class="loading" style="display:none;">
+        <div class="spinner"></div>
+        <p>Procesando imagen...</p>
+      </div>
+    </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('upload-form');
-            const fileInput = document.getElementById('image-upload');
-            const fileChosen = document.getElementById('file-chosen');
-            const imagePreview = document.getElementById('image-preview');
-            const resultsSection = document.querySelector('.results-section');
-            const loading = document.querySelector('.loading');
+    <footer>
+      <p>By: Misael Barbosa Arce</p>
+    </footer>
+  </div>
 
-            // Actualizar etiqueta del archivo seleccionado
-            fileInput.addEventListener('change', function() {
-                if (this.files.length > 0) {
-                    fileChosen.textContent = this.files[0].name;
-                    
-                    // Mostrar vista previa de la imagen
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imagePreview.src = e.target.result;
-                        imagePreview.style.display = 'block';
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                } else {
-                    fileChosen.textContent = 'Seleccionar imagen';
-                    imagePreview.style.display = 'none';
-                }
-            });
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('upload-form');
+      const fileInput = document.getElementById('image-upload');
+      const fileChosen = document.getElementById('file-chosen');
+      const imagePreview = document.getElementById('image-preview');
+      const resultsSection = document.querySelector('.results-section');
+      const loading = document.querySelector('.loading');
 
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData();
-                if (fileInput.files.length === 0) {
-                    alert('Por favor, selecciona una imagen primero.');
-                    return;
-                }
-                
-                formData.append('file', fileInput.files[0]);
-                
-                // Mostrar spinner de carga
-                loading.style.display = 'flex';
-                resultsSection.style.display = 'none';
-                
-                fetch('/predict', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error en la clasificación');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    document.getElementById('resnet-prediction').textContent = data['ResNet Prediction'];
-                    document.getElementById('alexnet-prediction').textContent = data['AlexNet Prediction'];
-                    
-                    document.getElementById('resnet-top1').textContent = data['Model Performance']['ResNet-50']['Top-1 Accuracy'];
-                    document.getElementById('resnet-top5').textContent = data['Model Performance']['ResNet-50']['Top-5 Accuracy'];
-                    document.getElementById('alexnet-top1').textContent = data['Model Performance']['AlexNet']['Top-1 Accuracy'];
-                    document.getElementById('alexnet-top5').textContent = data['Model Performance']['AlexNet']['Top-5 Accuracy'];
-                    
-                    // Ocultar spinner y mostrar resultados
-                    loading.style.display = 'none';
-                    resultsSection.style.display = 'block';
-                })
-                .catch(error => {
-                    alert('Error: ' + error.message);
-                    loading.style.display = 'none';
-                });
-            });
+      // Actualizar etiqueta del archivo seleccionado
+      fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+          fileChosen.textContent = this.files[0].name;
+          
+          // Mostrar vista previa de la imagen
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+          }
+          reader.readAsDataURL(this.files[0]);
+        } else {
+          fileChosen.textContent = 'Seleccionar imagen';
+          imagePreview.style.display = 'none';
+        }
+      });
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        if (fileInput.files.length === 0) {
+          alert('Por favor, selecciona una imagen primero.');
+          return;
+        }
+        
+        formData.append('file', fileInput.files[0]);
+        
+        // Mostrar spinner de carga
+        loading.style.display = 'flex';
+        resultsSection.style.display = 'none';
+        
+        fetch('/predict', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error en la clasificación');
+          }
+          return response.json();
+        })
+        .then(data => {
+          document.getElementById('resnet-prediction').textContent = data['ResNet Prediction'];
+          document.getElementById('alexnet-prediction').textContent = data['AlexNet Prediction'];
+          
+          document.getElementById('resnet-top1').textContent = data['Model Performance']['ResNet-50']['Top-1 Accuracy'];
+          document.getElementById('resnet-top5').textContent = data['Model Performance']['ResNet-50']['Top-5 Accuracy'];
+          document.getElementById('alexnet-top1').textContent = data['Model Performance']['AlexNet']['Top-1 Accuracy'];
+          document.getElementById('alexnet-top5').textContent = data['Model Performance']['AlexNet']['Top-5 Accuracy'];
+          
+          // Ocultar spinner y mostrar resultados
+          loading.style.display = 'none';
+          resultsSection.style.display = 'block';
+        })
+        .catch(error => {
+          alert('Error: ' + error.message);
+          loading.style.display = 'none';
         });
-    </script>
-    <footer>By:Misael Barbosa Arce</footer>
+      });
+    });
+  </script>
 </body>
 </html>
